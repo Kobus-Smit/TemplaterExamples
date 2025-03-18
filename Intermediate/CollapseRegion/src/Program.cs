@@ -35,11 +35,11 @@ namespace CollapseRegion
 			var factory = Configuration.Builder.Include((value, metadata, path, position, templater) =>
 			{
 				var str = value as string;
-				if (str != null && metadata.StartsWith("collapseIf("))
+				if (str != null && metadata.StartsWith("showIf("))
 				{
 					//Extract the matching expression
-					var expression = metadata.Substring("collapseIf(".Length, metadata.Length - "collapseIf(".Length - 1);
-					if (str == expression)
+					var expression = metadata.Substring("showIf(".Length, metadata.Length - "showIf(".Length - 1);
+					if (str != expression)
 					{
 						//remove the context around the specific property
 						if (position == -1)
@@ -54,6 +54,16 @@ namespace CollapseRegion
 						}
 						return Handled.NestedTags;
 					}
+					
+					//when position is -1 it means non sharing tag is being used, in which case we can just replace the first tag
+					//otherwise we can replace that exact tag via position API
+					//replacing the first tag is the same as calling replace(tag, 0, value)
+					if (position == -1)
+						templater.Replace(path, "");
+					else
+						templater.Replace(path, position, "");					
+
+					return Handled.NestedTags;
 				}
 				return Handled.Nothing;
 			}).Build();
@@ -61,6 +71,7 @@ namespace CollapseRegion
 			using (var doc = factory.Open("Collapse.docx"))
 			{
 				doc.Process(new[] { application1, application2, application3 });
+				//doc.Process(new[] { application1 });
 			}
 			Process.Start(new ProcessStartInfo("Collapse.docx") { UseShellExecute = true });
 		}
