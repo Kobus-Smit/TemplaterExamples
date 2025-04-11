@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Xml.Linq;
@@ -68,10 +69,27 @@ namespace CollapseRegion
 				return Handled.Nothing;
 			}).Build();
 
+			var data = new Dictionary<string, object>
+			{
+				{ "Name", "One" },
+				{ "Pricing", new List<Dictionary<string, object>>
+				{
+					new Dictionary<string, object>
+					{
+						{ "FeesSection_MID_Other", "N" },
+						{ "eftposRental_exclGST", 0 }
+					},
+					new Dictionary<string, object>
+					{
+						{ "FeesSection_MID_Other", "Y" },
+						{ "eftposRental_exclGST", 22.6818 }
+					}
+				} }
+			};
+
 			using (var doc = factory.Open("Collapse.docx"))
 			{
-				doc.Process(new[] { application1, application2, application3 });
-				//doc.Process(new[] { application1 });
+				doc.Process(new[] { data });
 			}
 			Process.Start(new ProcessStartInfo("Collapse.docx") { UseShellExecute = true });
 		}
